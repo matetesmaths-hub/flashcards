@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Révisions intelligentes - 3e</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <header>
+    <h1>Révisions intelligentes</h1>
+    <p>Boîtes de Leitner - Mathématiques 3e</p>
+  </header>
+
+  <main>
+    <section id="home">
+      <section class="revision-mode">
+      <h2>Mode révisions mixtes</h2>
+      <p>Questions tirées au hasard dans tous les thèmes.</p>
+      <div class="actions">
+        <button onclick="startRevisionMode(5)">5 questions</button>
+        <button onclick="startRevisionMode(10)">10 questions</button>
+        <button onclick="startRevisionMode(20)">20 questions</button>
+      </div>
+    </section>
+
+    <h2>Choisis un thème</h2>
+      <div class="chapter-grid">
+        <button onclick="loadChapter('calcul')">Calcul littéral</button>
+        <button onclick="loadChapter('geometrie')">Géométrie</button>
+        <button onclick="loadChapter('fonctions')">Fonctions</button>
+        <button onclick="loadChapter('probaStats')">Probabilités / Statistiques</button>
+        <button onclick="loadChapter('pav')"> Parimètres, aires, volumes </button>
+      </div>
+    </section>
+
+    <section id="app" class="hidden">
+      <div class="topbar">
+        <button class="secondary" onclick="goHome()">← Changer de thème</button>
+
+        <div>
+          <label for="themeFilter"><strong>Sous-thème : </strong></label>
+          <select id="themeFilter" onchange="changeTheme()">
+            <option value="Tous">Tous</option>
+          </select>
+        </div>
+
+        <div class="small" id="dailyInfo"></div>
+      </div>
+
+      <h2 id="chapterTitle"></h2>
+
+      <section class="stats" id="stats"></section>
+      <div class="progress">
+        <div class="progress-bar" id="progressBar"></div>
+      </div>
+
+      <section class="badges" id="badgeZone"></section>
+
+      <section class="card" id="card"></section>
+
+      <div class="actions">
+        <button class="secondary" onclick="resetProgress()">Réinitialiser ma progression</button>
+        <button class="secondary" onclick="reviewAllToday()">Mode évaluation : tout revoir</button>
+      </div>
+
+      <p class="small">
+        Principe : une réponse juste fait avancer la carte vers une boîte plus élevée.
+        Une erreur la renvoie en boîte 1. Les cartes des petites boîtes reviennent plus souvent.
+      </p>
+    </section>
+  </main>
+
+  <script src="questions-calcul.js"></script>
+  <script src="questions-geometrie.js"></script>
+  <script src="questions-fonctions.js"></script>
+  <script src="questions-proba-stats.js"></script>
+  <script src="questions-pav.js"></script>
+  <script>
+    window.MathJax = {
+      tex: {
+        inlineMath: [['\\(', '\\)']],
+        displayMath: [['\\[', '\\]']]
+      }
+    };
+    </script>
+    
+    <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>
