@@ -253,3 +253,9 @@ button:hover { opacity: 0.9; }
   height: auto;
   border-radius: 10px;
 }
+.note {
+  font-size: 0.85em;
+  font-style: italic;
+  color: #FF4500;
+  margin-top: 6px;
+}

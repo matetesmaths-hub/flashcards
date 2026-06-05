@@ -29,6 +29,12 @@ const chapters = {
     themeKey: "leitner_pav_theme",
     questions: questionsPav
   },  
+  puissances: {
+    title: "Puissances",
+    storageKey: "leitner_puissances",
+    themeKey: "leitner_puissances_theme",
+    questions: questionsPuissances
+  },
 };
 
 const intervals = [0, 1, 2, 4, 7, 14];
@@ -96,7 +102,9 @@ function allQuestions() {
     ...questionsCalcul.map(q => ({ ...q, chapterName: "Calcul littéral" })),
     ...questionsGeometrie.map(q => ({ ...q, chapterName: "Géométrie" })),
     ...questionsFonctions.map(q => ({ ...q, chapterName: "Fonctions" })),
-    ...questionsProbaStats.map(q => ({ ...q, chapterName: "Probabilités / statistiques" }))
+    ...questionsProbaStats.map(q => ({ ...q, chapterName: "Probabilités / statistiques" })),
+    ...questionsPav.map(q => ({ ...q, chapterName: "Périmètres, aires, volumes" })),
+    ...questionsPuissances.map(q => ({ ...q, chapterName: "Puissances" }))
   ];
 }
 
@@ -146,21 +154,30 @@ document.getElementById("stats").style.display = "none";
 document.querySelector(".progress").style.display = "none";
 document.getElementById("dailyInfo").style.display = "none";
 
-  if (currentQuestion.type === "short") {
-    card.innerHTML = `
-      <div class="theme">${progressText} — ${currentQuestion.chapterName} — ${currentQuestion.theme}</div>
-      ${figureHtml}
-      <div class="question">${currentQuestion.question}</div>
-      <input type="text" id="answerInput" placeholder="Écris ta réponse ici"
-        onkeydown="if(event.key === 'Enter') checkShortAnswer()" />
-      <div class="actions">
-        <button onclick="checkShortAnswer()">Valider</button>
-      </div>
-      <div id="feedback"></div>
-    `;
-    renderMath()
-    document.getElementById("answerInput").focus();
-  }
+if (currentQuestion.type === "short") {
+  card.innerHTML = `
+    <div class="theme">
+      ${progressText} — ${currentQuestion.chapterName} — ${currentQuestion.theme}
+    </div>
+
+    ${figureHtml}
+
+    <div class="question">
+      ${currentQuestion.question}
+
+    <input type="text" id="answerInput" placeholder="Écris ta réponse ici"
+      onkeydown="if(event.key === 'Enter') checkShortAnswer()" />
+
+    <div class="actions">
+      <button onclick="checkShortAnswer()">Valider</button>
+    </div>
+
+    <div id="feedback"></div>
+  `;
+
+  renderMath();
+  document.getElementById("answerInput").focus();
+}
 
   if (currentQuestion.type === "qcm") {
     currentChoices = shuffledChoices(currentQuestion);
@@ -510,15 +527,24 @@ function renderCard() {
   if (currentQuestion.type === "short") {
     card.innerHTML = `
       <div class="theme">${currentQuestion.theme} — boîte ${p.box}</div>
+  
       ${figureHtml}
-      <div class="question">${currentQuestion.question}</div>
+  
+      <div class="question">
+        ${currentQuestion.question}
+        ${currentQuestion.note ? `<div class="note">${currentQuestion.note}</div>` : ""}
+      </div>
+  
       <input type="text" id="answerInput" placeholder="Écris ta réponse ici"
         onkeydown="if(event.key === 'Enter') checkShortAnswer()" />
+  
       <div class="actions">
         <button onclick="checkShortAnswer()">Valider</button>
       </div>
+  
       <div id="feedback"></div>
     `;
+  
     renderMath();
     document.getElementById("answerInput").focus();
   }
@@ -631,6 +657,11 @@ function validateCourseAnswer(isCorrect) {
   if (answered) return;
   answered = true;
 
+  const actions = document.querySelector("#feedback .actions");
+  if (actions) {
+    actions.style.display = "none";
+  }
+
   moveCard(isCorrect);
 
   if (revisionMode) {
@@ -638,6 +669,7 @@ function validateCourseAnswer(isCorrect) {
   }
 
   const feedback = document.getElementById("feedback");
+
   feedback.innerHTML += `
     <div class="actions">
       <button class="success" onclick="revisionMode ? nextRevisionQuestion() : renderCard()">

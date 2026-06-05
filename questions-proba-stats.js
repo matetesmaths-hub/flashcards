@@ -115,7 +115,7 @@ const questionsProbaStats = [
     feedback: "Étendue = maximum - minimum."
   },
   {
-    id: "stats5",
+    id: "stats6",
     type: "qcm",
     theme: "Statistiques",
     question: "La médiane d'une série statistique est...",
