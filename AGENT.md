@@ -43,6 +43,10 @@ Pour `short` :
 - `answers` contient toutes les reponses acceptees.
 - La comparaison normalise la casse, les espaces, `×`, `−`, `²`, les virgules et
   certaines unites.
+- Les questions peuvent etre parametrees avec `parameters` et `generate(values)`.
+  Le moteur tire une valeur au hasard pour chaque parametre au moment de
+  l'affichage, puis fusionne les champs generes (`question`, `answers`,
+  `feedback`, etc.) dans la carte courante.
 
 Pour `qcm` :
 
@@ -65,14 +69,29 @@ Pour `cours` :
 - La selection tire une carte due au hasard dans le sous-theme courant, en evitant
   si possible de reprendre immediatement la meme carte.
 
+## Statistiques locales eleves
+
+- Les statistiques locales sont stockees dans `localStorage` avec la cle
+  `leitner_local_usage_stats`.
+- Elles enregistrent les sessions, les reponses, les reussites, les erreurs, le
+  temps moyen par reponse, les donnees par jour, par chapitre, par theme et par
+  question.
+- Le bloc `studentStats` est sur la page d'accueil. Il affiche : activite du
+  jour, activite sur 7 jours, taux de reussite total, serie actuelle, temps
+  moyen, meilleur chapitre et themes a retravailler.
+- Le bouton "Reinitialiser mes statistiques" efface uniquement ces statistiques,
+  pas la progression Leitner.
+- Les badges sont aussi sur la page d'accueil et portent sur la progression
+  globale de tous les chapitres.
+
 ## Mode revisions mixtes
 
 `startRevisionMode(count)` lance une serie aleatoire de 5, 10 ou 20 questions.
 Ce mode ne met pas a jour la progression Leitner des chapitres. Il calcule un
 score et regroupe les erreurs par chapitre et sous-theme.
 
-Attention actuelle : `allQuestions()` inclut calcul, geometrie, fonctions et
-probabilites/statistiques, mais pas encore `pav` ni `puissances`.
+`allQuestions()` inclut tous les chapitres : calcul, geometrie, fonctions,
+probabilites/statistiques, perimetres/aires/volumes et puissances.
 
 ## Points d'attention reperes
 

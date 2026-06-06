@@ -14,6 +14,14 @@
 
   <main>
     <section id="home">
+      <section class="home-dashboard">
+        <section class="student-stats" id="studentStats"></section>
+        <section class="badges" id="badgeZone"></section>
+        <div class="actions compact-actions">
+          <button class="secondary" onclick="resetStudentStats()">Réinitialiser mes statistiques</button>
+        </div>
+      </section>
+
       <section class="revision-mode">
       <h2>Mode révisions mixtes</h2>
       <p>Questions tirées au hasard dans tous les thèmes.</p>
@@ -55,8 +63,6 @@
       <div class="progress">
         <div class="progress-bar" id="progressBar"></div>
       </div>
-
-      <section class="badges" id="badgeZone"></section>
 
       <section class="card" id="card"></section>
 

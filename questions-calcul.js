@@ -8,42 +8,134 @@ const questionsCalcul = [
   {
     id: "cal1",
     type: "short",
-    theme: "Développer",
-    question: "Développer : \\( 3(x + 4) \\)",
-    answers: ["\\( 3x+12 \\)","3x+12", "12+3x"],
-    feedback: "On distribue 3 sur chaque terme : \\( 3 \\times x \\) puis \\( 3 \\times 4\\)."
+    theme: "test",
+  
+    parameters: {
+      a: [-9, -8, -7, -6, -5, -4, -3, -2, 2, 3, 4, 5, 6, 7, 8, 9],
+      b: [2, 3, 4, 5, 6, 7, 8, 9]
+    },
+  
+    generate({ a, b }) {
+  
+      const constant = a * b;
+  
+      const answer =
+        constant >= 0
+          ? `${a}x+${constant}`
+          : `${a}x${constant}`;
+  
+      const reversed =
+        constant >= 0
+          ? `${constant}+${a}x`
+          : `${constant}${a >= 0 ? "+" : ""}${a}x`;
+  
+      return {
+        question: `Développer : \\( ${a}(x + ${b}) \\)`,
+  
+        answers: [
+          `\\( ${answer} \\)`,
+          answer,
+          reversed,
+          `\\( ${reversed} \\)`
+        ],
+  
+        feedback:
+          `On distribue ${a} sur chaque terme : ` +
+          `\\( ${a}\\times x = ${a}x \\) puis ` +
+          `\\( ${a}\\times ${b} = ${constant} \\).`
+      };
+    }
   },
   {
     id: "cal2",
     type: "short",
     theme: "Développer",
-    question: "Développer : \\(5(2x - 3)\\)",
-    answers: ["\\( 10x-15 \\)", "10x-15", "-15+10x"],
-    feedback: "On distribue 5 sur chaque terme : \\( 5 \\times 2x \\) puis \\( 5 × (-3) = -15 \\)."
+    parameters: {
+      a: [2, 3, 4, 5, 6, 7, 8, 9],
+      b: [2, 3, 4, 5, 6, 7, 8, 9]
+    },
+    generate({ a, b }) {
+      const constant = a * b;
+
+      return {
+        question: `Développer : \\( ${a}(x - ${b}) \\)`,
+        answers: [
+          `\\( ${a}x - ${constant} \\)`,
+          `${a}x - ${constant}`,
+          `${constant} - ${a}x`,
+          `\\( ${constant} - ${a}x \\)`
+        ],
+        feedback: `On distribue ${a} sur chaque terme : \\( ${a} \\times x = ${a}x \\) puis \\( ${a} \\times ${b} = ${constant} \\).`
+      };
+    }
   },
   {
     id: "cal3",
     type: "short",
     theme: "Développer",
-    question: "Développer : \\( -2(x + 6) \\)",
-    answers: ["\\( -2x-12 \\)", "-2x-12", "-12-2x"],
-    feedback: "On distribue -2 : \\(-2 \\times x \\) puis \\(-2 \\times 6 \\)."
+    parameters: {
+      a: [2, 3, 4, 5, 6, 7, 8, 9],
+      b: [2, 3, 4, 5, 6, 7, 8, 9]
+    },
+    generate({ a, b }) {
+      const constant = a * b;
+
+      return {
+        question: `Développer : \\( - ${a}(x - ${b}) \\)`,
+        answers: [
+          `\\( - ${a}x + ${constant} \\)`,
+          ` - ${a}x + ${constant}`,
+          ` ${constant} - ${a}x`,
+          `\\( ${constant} - ${a}x \\)`
+        ],
+        feedback: `On distribue ${a} sur chaque terme : \\( - ${a} \\times x = - ${a}x \\) puis \\( - ${a} \\times (- ${b}) = + ${constant} \\).`
+      };
+    }
   },
   {
     id: "cal4",
     type: "short",
     theme: "Réduire",
-    question: "Réduire : \\( 4x + 7x \\)",
-    answers: ["\\( 11x \\)", "11x"],
-    feedback: "On additionne les coefficients des termes en \\( x \\) : 4 + 7 = 11."
+    parameters: {
+      a: [2, 3, 4, 5, 6, 7, 8, 9],
+      b: [2, 3, 4, 5, 6, 7, 8, 9]
+    },
+    generate({ a, b }) {
+      const constant = a + b;
+
+      return {
+        question: `Réduire : \\( ${a}x + ${b}x \\)`,
+        answers: [
+          `\\( ${constant}x \\)`,
+          `${constant}x`
+        ],
+        feedback: `On additionne les coefficients des termes en \\( x \\) : \\( ${a} + ${b} = ${constant} \\).`
+      };
+    }
   },
   {
     id: "cal5",
     type: "short",
     theme: "Réduire",
-    question: "Réduire : \\( 8x - 3x + 2 \\)",
-    answers: ["\\( 5x+2 \\)", "5x+2", "2+5x"],
-    feedback: "\\( 8x - 3x = 5x \\) (famille des \\( x \\). Le 2 reste un terme constant (famille des nombres)."
+    parameters: {
+      a: [5, 6, 7, 8, 9],
+      b: [2, 3, 4],
+      c: [2, 3, 4, 5, 6, 7, 8, 9]
+    },
+    generate({ a, b, c }) {
+      const termeX = a - b;
+
+      return {
+        question: `Réduire : \\( ${a}x + ${c} - ${b}x \\)`,
+        answers: [
+          `\\( ${termeX}x + ${c} \\)`,
+          `${termeX}x + ${c}`,
+          `\\(${c} + ${termeX}x  \\)`,
+          `${c} + ${termeX}x + `
+        ],
+        feedback: `\\( ${a}x - ${b}x = ${termeX}x \\) (famille des \\( x \\)). Le \\( ${c} \\) reste un terme constant (famille des nombres).`
+      };
+    }
   },
   {
     id: "cal6",
@@ -80,7 +172,7 @@ const questionsCalcul = [
   {
     id: "cal10",
     type: "qcm",
-    theme: "Vocabulaire",
+    theme: "Développer",
     question: "Que signifie développer une expression ?",
     choices: [
       "Transformer un produit en somme ou différence",
@@ -89,12 +181,12 @@ const questionsCalcul = [
       "Supprimer tous les nombres"
     ],
     answer: 0,
-    feedback: "Développer, c'est enlever les parenthèses quand c'est possible."
+    feedback: "Développer, c'est enlever les parenthèses en distribuant le facteur aux nombres dans la parenthèse."
   },
   {
     id: "cal11",
     type: "qcm",
-    theme: "Vocabulaire",
+    theme: "Factoriser",
     question: "Que signifie factoriser une expression ?",
     choices: [
       "Transformer une somme ou différence en produit",
@@ -104,6 +196,57 @@ const questionsCalcul = [
     ],
     answer: 0,
     feedback: "Factoriser, c'est faire apparaître un produit  (des facteurs !)."
+  },
+  {
+    id: "cal13",
+    type: "short",
+    theme: "Développer",
+    parameters: {
+      a: [2, 3, 4, 5],
+      b: [2, 3, 4, 5],
+      c: [1, 2, 3, 4, 5]
+    },
+    generate({ a, b, c }) {
+      const xCoefficient = a * b;
+      const constant = a * c;
+  
+      return {
+        question: `Développer : \\( ${a}(${b}x + ${c}) \\)`,
+        answers: [
+          `\\( ${xCoefficient}x+${constant} \\)`,
+          `${xCoefficient}x+${constant}`,
+          `${constant}+${xCoefficient}x`,
+          `\\( ${constant}+${xCoefficient}x \\)`
+        ],
+        feedback: `On distribue ${a} : \\( ${a} \\times ${b}x = ${xCoefficient}x \\) puis \\( ${a} \\times ${c} = ${constant} \\).`
+      };
+    }
+  },
+  {
+    id: "cal14",
+    type: "short",
+    theme: "Développer",
+    note: "Pour écrire \\( x^2 \\), écris x^2.",
+    parameters: {
+      a: [2, 3, 4, 5],
+      b: [2, 3, 4, 5],
+      c: [1, 2, 3, 4, 5]
+    },
+    generate({ a, b, c }) {
+      const xCoefficient = a * b;
+      const constant = a * c;
+  
+      return {
+        question: `Développer : \\( ${a}x(${b}x + ${c}) \\)`,
+        answers: [
+          `\\( ${xCoefficient}x^2+${constant}x \\)`,
+          `${xCoefficient}x^2+${constant}x`,
+          `${constant}x+${xCoefficient}x^2`,
+          `\\( ${constant}x +${xCoefficient}x^2 \\)`
+        ],
+        feedback: `On distribue ${a} : \\( ${a}x \\times ${b}x = ${xCoefficient}x^2 \\) puis \\( ${a}x \\times ${c} = ${constant}x \\).`
+      };
+    }
   },
   {
     id: "eq1",

@@ -17,6 +17,8 @@ depuis un CDN pour afficher les formules.
 - cartes de type QCM, reponse courte ou auto-evaluation de cours ;
 - progression par boites de Leitner stockee dans le navigateur ;
 - statistiques par boite et barre de progression ;
+- statistiques locales eleves sur l'accueil : activite du jour, activite sur
+  7 jours, reussite totale, temps moyen et themes a retravailler ;
 - badges de progression et de regularite ;
 - mode revisions mixtes avec score final.
 
@@ -48,6 +50,27 @@ Exemple reponse courte :
   question: "Calculer \\( 2 + 3 \\).",
   answers: ["5"],
   feedback: "2 + 3 = 5."
+}
+```
+
+Exemple reponse courte parametree :
+
+```js
+{
+  id: "exemple4",
+  type: "short",
+  theme: "Developper",
+  parameters: {
+    a: [2, 3, 4],
+    b: [5, 6, 7]
+  },
+  generate({ a, b }) {
+    return {
+      question: `Developper : \\( ${a}(x + ${b}) \\)`,
+      answers: [`${a}x+${a * b}`, `${a * b}+${a}x`],
+      feedback: `On distribue ${a} sur x puis sur ${b}.`
+    };
+  }
 }
 ```
 

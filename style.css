@@ -31,6 +31,17 @@ main {
   margin-top: 20px;
 }
 
+.home-dashboard {
+  display: grid;
+  gap: 14px;
+  margin-bottom: 24px;
+}
+
+.home-dashboard .student-stats,
+.home-dashboard .badges {
+  margin-bottom: 0;
+}
+
 .topbar {
   display: flex;
   gap: 10px;
@@ -81,6 +92,75 @@ select {
   width: 0%;
   background: #2f8f46;
   transition: width 0.3s;
+}
+
+.student-stats {
+  background: #f7fafc;
+  border: 1px solid #dce5ea;
+  border-radius: 14px;
+  padding: 16px;
+  margin-bottom: 20px;
+}
+
+.student-stats-header {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  align-items: baseline;
+  flex-wrap: wrap;
+  margin-bottom: 14px;
+}
+
+.student-stats-header h3 {
+  margin: 0;
+  font-size: 20px;
+}
+
+.student-stats-header span {
+  color: #666;
+  font-size: 14px;
+}
+
+.student-stats-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 10px;
+}
+
+.stat-card {
+  background: white;
+  border: 1px solid #dce5ea;
+  border-radius: 10px;
+  padding: 12px;
+}
+
+.stat-card span,
+.stat-card small {
+  display: block;
+  color: #666;
+  font-size: 13px;
+  line-height: 1.3;
+}
+
+.stat-card strong {
+  display: block;
+  color: #1f6f8b;
+  font-size: 24px;
+  line-height: 1.2;
+  margin: 6px 0;
+  overflow-wrap: anywhere;
+}
+
+.weak-themes {
+  border-top: 1px solid #dce5ea;
+  margin-top: 14px;
+  padding-top: 12px;
+  font-size: 15px;
+}
+
+.weak-themes ul {
+  margin: 8px 0 0;
+  padding-left: 20px;
 }
 
 .card {
@@ -169,6 +249,11 @@ button:hover { opacity: 0.9; }
   margin-top: 18px;
 }
 
+.compact-actions {
+  margin-top: 0;
+  justify-content: flex-end;
+}
+
 .small {
   font-size: 14px;
   color: #666;
@@ -183,6 +268,10 @@ button:hover { opacity: 0.9; }
 
   .stats {
     grid-template-columns: repeat(2, 1fr);
+  }
+
+  .student-stats-grid {
+    grid-template-columns: 1fr;
   }
 
   .chapter-grid {

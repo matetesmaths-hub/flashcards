@@ -52,6 +52,7 @@ let revisionQuestions = [];
 let revisionIndex = 0;
 let revisionScore = 0;
 let revisionErrors = {};
+let questionDisplayedAt = null;
 
 function todayNumber() {
   return Math.floor(Date.now() / (1000 * 60 * 60 * 24));
@@ -86,6 +87,28 @@ function shuffledChoices(question) {
   })));
 }
 
+function randomChoice(values) {
+  return values[Math.floor(Math.random() * values.length)];
+}
+
+function generateQuestionVariant(question) {
+  if (!question.parameters || typeof question.generate !== "function") {
+    return question;
+  }
+
+  const values = {};
+
+  Object.entries(question.parameters).forEach(([key, possibleValues]) => {
+    values[key] = randomChoice(possibleValues);
+  });
+
+  return {
+    ...question,
+    ...question.generate(values),
+    generatedValues: values
+  };
+}
+
 function escapeHtml(text) {
   return text
     .toString()
@@ -94,6 +117,241 @@ function escapeHtml(text) {
     .replaceAll(">", "&gt;")
     .replaceAll('"', "&quot;")
     .replaceAll("'", "&#039;");
+}
+
+function getUsageStatsKey() {
+  return "leitner_local_usage_stats";
+}
+
+function emptyUsageStats() {
+  return {
+    sessions: 0,
+    answers: 0,
+    correct: 0,
+    wrong: 0,
+    totalResponseSeconds: 0,
+    chapters: {},
+    themes: {},
+    questions: {},
+    days: {}
+  };
+}
+
+function getUsageStats() {
+  try {
+    const storedStats = JSON.parse(localStorage.getItem(getUsageStatsKey()));
+    const stats = { ...emptyUsageStats(), ...storedStats };
+
+    stats.chapters = stats.chapters || {};
+    stats.themes = stats.themes || {};
+    stats.questions = stats.questions || {};
+    stats.days = stats.days || {};
+
+    return stats;
+  } catch (error) {
+    return emptyUsageStats();
+  }
+}
+
+function saveUsageStats(stats) {
+  localStorage.setItem(getUsageStatsKey(), JSON.stringify(stats));
+}
+
+function getQuestionChapterName() {
+  if (revisionMode) return currentQuestion.chapterName || "Révisions mixtes";
+  return currentChapter ? currentChapter.title : "Révisions";
+}
+
+function updateStatsCounter(container, key, isCorrect, extra = {}) {
+  if (!container[key]) {
+    container[key] = { answers: 0, correct: 0, wrong: 0, ...extra };
+  } else {
+    container[key] = { ...extra, ...container[key] };
+  }
+
+  container[key].answers += 1;
+
+  if (isCorrect) {
+    container[key].correct += 1;
+  } else {
+    container[key].wrong += 1;
+  }
+}
+
+function registerStudySession() {
+  const stats = getUsageStats();
+  const today = getTodayKey();
+
+  stats.sessions += 1;
+
+  if (!stats.days[today]) {
+    stats.days[today] = { answers: 0, correct: 0, sessions: 0 };
+  }
+
+  stats.days[today].sessions += 1;
+  saveUsageStats(stats);
+  renderStudentStats();
+}
+
+function recordAnswerStats(isCorrect) {
+  const stats = getUsageStats();
+  const today = getTodayKey();
+  const chapterName = getQuestionChapterName();
+  const themeName = currentQuestion.theme || "Sans sous-thème";
+  const themeKey = `${chapterName} — ${themeName}`;
+  const questionKey = `${chapterName} — ${currentQuestion.id}`;
+  const responseSeconds = questionDisplayedAt
+    ? Math.max(1, Math.round((Date.now() - questionDisplayedAt) / 1000))
+    : 0;
+
+  stats.answers += 1;
+  stats.totalResponseSeconds += responseSeconds;
+
+  if (isCorrect) {
+    stats.correct += 1;
+  } else {
+    stats.wrong += 1;
+  }
+
+  updateStatsCounter(stats.chapters, chapterName, isCorrect);
+  updateStatsCounter(stats.themes, themeKey, isCorrect, {
+    chapter: chapterName,
+    theme: themeName
+  });
+  updateStatsCounter(stats.questions, questionKey, isCorrect, {
+    chapter: chapterName,
+    theme: themeName,
+    label: currentQuestion.question
+  });
+
+  if (!stats.days[today]) {
+    stats.days[today] = { answers: 0, correct: 0, sessions: 0 };
+  }
+
+  stats.days[today].answers += 1;
+  if (isCorrect) stats.days[today].correct += 1;
+
+  saveUsageStats(stats);
+  renderStudentStats();
+}
+
+function percent(correct, total) {
+  if (!total) return 0;
+  return Math.round((correct / total) * 100);
+}
+
+function getRecentAnswers(stats, daysCount) {
+  const today = new Date();
+  let total = 0;
+  let correct = 0;
+
+  for (let i = 0; i < daysCount; i++) {
+    const date = new Date(today);
+    date.setDate(today.getDate() - i);
+    const key = date.toISOString().slice(0, 10);
+    const day = stats.days[key];
+
+    if (day) {
+      total += day.answers || 0;
+      correct += day.correct || 0;
+    }
+  }
+
+  return { total, correct };
+}
+
+function getWeakThemes(stats) {
+  return Object.entries(stats.themes)
+    .filter(([, item]) => item.answers >= 2 && item.wrong > 0)
+    .sort((a, b) => {
+      const wrongRateA = a[1].wrong / a[1].answers;
+      const wrongRateB = b[1].wrong / b[1].answers;
+      return wrongRateB - wrongRateA || b[1].wrong - a[1].wrong;
+    })
+    .slice(0, 3);
+}
+
+function getBestChapter(stats) {
+  return Object.entries(stats.chapters)
+    .filter(([, item]) => item.answers >= 3)
+    .sort((a, b) => percent(b[1].correct, b[1].answers) - percent(a[1].correct, a[1].answers))[0];
+}
+
+function renderHomeDashboard() {
+  renderStudentStats();
+  renderBadges();
+}
+
+function renderStudentStats() {
+  const zone = document.getElementById("studentStats");
+  if (!zone) return;
+
+  const stats = getUsageStats();
+  const today = getRecentAnswers(stats, 1);
+  const week = getRecentAnswers(stats, 7);
+  const successRate = percent(stats.correct, stats.answers);
+  const averageTime = stats.answers
+    ? Math.round(stats.totalResponseSeconds / stats.answers)
+    : 0;
+  const weakThemes = getWeakThemes(stats);
+  const bestChapter = getBestChapter(stats);
+  const streak = getRevisionDaysCount();
+
+  const weakThemesHtml = weakThemes.length
+    ? weakThemes.map(([name, item]) => `
+        <li>${escapeHtml(name)} : ${item.wrong} erreur${item.wrong > 1 ? "s" : ""} sur ${item.answers}</li>
+      `).join("")
+    : "<li>Aucun thème fragile repéré pour le moment.</li>";
+
+  const bestChapterText = bestChapter
+    ? `${bestChapter[0]} (${percent(bestChapter[1].correct, bestChapter[1].answers)} %)`
+    : "Pas encore assez de réponses";
+
+  zone.innerHTML = `
+    <div class="student-stats-header">
+      <h3>Mes statistiques</h3>
+      <span>
+        ${stats.answers} réponse${stats.answers > 1 ? "s" : ""} enregistrée${stats.answers > 1 ? "s" : ""}
+        · ${stats.sessions} session${stats.sessions > 1 ? "s" : ""}
+      </span>
+    </div>
+    <div class="student-stats-grid">
+      <div class="stat-card">
+        <span>Aujourd'hui</span>
+        <strong>${today.total}</strong>
+        <small>${percent(today.correct, today.total)} % de réussite</small>
+      </div>
+      <div class="stat-card">
+        <span>7 derniers jours</span>
+        <strong>${week.total}</strong>
+        <small>${percent(week.correct, week.total)} % de réussite</small>
+      </div>
+      <div class="stat-card">
+        <span>Réussite totale</span>
+        <strong>${successRate} %</strong>
+        <small>${stats.correct} juste${stats.correct > 1 ? "s" : ""}, ${stats.wrong} à revoir</small>
+      </div>
+      <div class="stat-card">
+        <span>Série actuelle</span>
+        <strong>${streak}</strong>
+        <small>jour${streak > 1 ? "s" : ""} de révision</small>
+      </div>
+      <div class="stat-card">
+        <span>Temps moyen</span>
+        <strong>${averageTime}s</strong>
+        <small>par réponse</small>
+      </div>
+      <div class="stat-card">
+        <span>Meilleur chapitre</span>
+        <strong>${escapeHtml(bestChapterText)}</strong>
+        <small>avec au moins 3 réponses</small>
+      </div>
+    </div>
+    <div class="weak-themes">
+      <strong>À retravailler</strong>
+      <ul>${weakThemesHtml}</ul>
+    </div>
+  `;
 }
 
 
@@ -133,6 +391,8 @@ function startRevisionMode(count) {
   document.getElementById("app").classList.remove("hidden");
   document.getElementById("chapterTitle").textContent = "Révisions mixtes";
 
+  registerRevisionDay();
+  registerStudySession();
   renderRevisionQuestion();
 }
 
@@ -145,11 +405,11 @@ function renderRevisionQuestion() {
     return;
   }
 
-  currentQuestion = revisionQuestions[revisionIndex];
+  currentQuestion = generateQuestionVariant(revisionQuestions[revisionIndex]);
+  questionDisplayedAt = Date.now();
   const figureHtml = renderFigure(currentQuestion);
   const progressText = `Question ${revisionIndex + 1} / ${revisionQuestions.length}`;
 
-  document.getElementById("badgeZone").style.display = "none";
 document.getElementById("stats").style.display = "none";
 document.querySelector(".progress").style.display = "none";
 document.getElementById("dailyInfo").style.display = "none";
@@ -164,6 +424,8 @@ if (currentQuestion.type === "short") {
 
     <div class="question">
       ${currentQuestion.question}
+      ${currentQuestion.note ? `<div class="note">${currentQuestion.note}</div>` : ""}
+    </div>
 
     <input type="text" id="answerInput" placeholder="Écris ta réponse ici"
       onkeydown="if(event.key === 'Enter') checkShortAnswer()" />
@@ -251,7 +513,6 @@ function renderRevisionEnd() {
 }
 
 function loadChapter(chapterId) {
-  document.getElementById("badgeZone").style.display = "";
   document.getElementById("stats").style.display = "";
   document.querySelector(".progress").style.display = "";
   document.getElementById("dailyInfo").style.display = "";
@@ -269,12 +530,14 @@ function loadChapter(chapterId) {
   document.getElementById("chapterTitle").textContent = currentChapter.title;
 
   registerRevisionDay();
+  registerStudySession();
   renderCard();
 }
 
 function goHome() {
   document.getElementById("app").classList.add("hidden");
   document.getElementById("home").classList.remove("hidden");
+  renderHomeDashboard();
 }
 
 function getQuestionProgress(id) {
@@ -379,25 +642,57 @@ function getRevisionDaysCount() {
   return data.streak;
 }
 
-function themeMastered(themeName) {
-  const themeQuestions = questions.filter(q => q.theme === themeName);
-  return themeQuestions.length > 0 && themeQuestions.every(q => getQuestionProgress(q.id).box >= 5);
+function getStoredChapterProgress(chapter) {
+  try {
+    return JSON.parse(localStorage.getItem(chapter.storageKey)) || {};
+  } catch (error) {
+    return {};
+  }
+}
+
+function getGlobalProgressSummary() {
+  const chapterList = Object.values(chapters);
+  let total = 0;
+  let mastered = 0;
+  let masteredChapters = 0;
+
+  chapterList.forEach(chapter => {
+    const chapterProgress = getStoredChapterProgress(chapter);
+    const chapterTotal = chapter.questions.length;
+    const chapterMastered = chapter.questions.filter(q =>
+      chapterProgress[q.id] && chapterProgress[q.id].box >= 5
+    ).length;
+
+    total += chapterTotal;
+    mastered += chapterMastered;
+
+    if (chapterTotal > 0 && chapterMastered === chapterTotal) {
+      masteredChapters += 1;
+    }
+  });
+
+  return {
+    total,
+    mastered,
+    masteredChapters,
+    chapterCount: chapterList.length
+  };
 }
 
 function getBadges() {
-  const mastered = questions.filter(q => getQuestionProgress(q.id).box >= 5).length;
+  const summary = getGlobalProgressSummary();
   const revisionDays = getRevisionDaysCount();
 
   return [
     {
       label: "🥉 Explorateur mathématique",
-      unlocked: mastered >= 5,
+      unlocked: summary.mastered >= 5,
       hint: "5 cartes maîtrisées"
     },
     {
-      label: "✅ Prêt en " + currentChapter.title,
-      unlocked: questions.length > 0 && questions.every(q => getQuestionProgress(q.id).box >= 5),
-      hint: "Toutes les cartes du chapitre sont maîtrisées"
+      label: "✅ Un chapitre solide",
+      unlocked: summary.masteredChapters >= 1,
+      hint: "Toutes les cartes d'un chapitre sont maîtrisées"
     },
     {
       label: "🌱 Persévérant",
@@ -416,30 +711,28 @@ function getBadges() {
     },
     {
       label: "🎓 Prêt pour le brevet",
-      unlocked: questions.length > 0 && mastered === questions.length,
-      hint: "Toutes les cartes du chapitre maîtrisées"
+      unlocked: summary.total > 0 && summary.mastered === summary.total,
+      hint: "Toutes les cartes de l'application sont maîtrisées"
     }
   ];
 }
 
 function renderBadges() {
-  if (revisionMode) {
-    document.getElementById("badgeZone").innerHTML = "";
-    return;
-  }
   const zone = document.getElementById("badgeZone");
   if (!zone) return;
 
   const badges = getBadges();
   const unlockedCount = badges.filter(b => b.unlocked).length;
   const streak = getRevisionDaysCount();
+  const summary = getGlobalProgressSummary();
 
   zone.innerHTML = `
   <div class="badges-title">
     🏅 Badges débloqués : ${unlockedCount}/${badges.length}
   </div>
   <div class="badge-hint">
-    🔥 Série actuelle : ${streak} jour${streak > 1 ? "s" : ""}
+    ${summary.mastered} carte${summary.mastered > 1 ? "s" : ""} maîtrisée${summary.mastered > 1 ? "s" : ""} sur ${summary.total}
+    · 🔥 Série actuelle : ${streak} jour${streak > 1 ? "s" : ""}
   </div>
     <div class="badge-list">
       ${badges.map(b => `
@@ -474,8 +767,6 @@ function renderStats() {
   const due = pool.filter(q => getQuestionProgress(q.id).due <= today).length;
   document.getElementById("dailyInfo").textContent =
     `${due} carte(s) à revoir aujourd'hui sur ${pool.length}`;
-
-  renderBadges();
 }
 
 function renderFigure(question) {
@@ -510,6 +801,8 @@ function renderCard() {
 
   answered = false;
   currentQuestion = selectQuestion();
+  currentQuestion = currentQuestion ? generateQuestionVariant(currentQuestion) : null;
+  questionDisplayedAt = currentQuestion ? Date.now() : null;
 
   const card = document.getElementById("card");
 
@@ -662,6 +955,7 @@ function validateCourseAnswer(isCorrect) {
     actions.style.display = "none";
   }
 
+  recordAnswerStats(isCorrect);
   moveCard(isCorrect);
 
   if (revisionMode) {
@@ -695,6 +989,7 @@ if (validateButton) {
   const validAnswers = currentQuestion.answers.map(normalize);
   const isCorrect = validAnswers.includes(userAnswer);
 
+  recordAnswerStats(isCorrect);
   if (revisionMode) recordRevisionResult(isCorrect);
   else moveCard(isCorrect);
   showFeedback(isCorrect, currentQuestion.answers[0]);
@@ -715,6 +1010,7 @@ function checkQcmAnswer(index) {
   const isCorrect = chosen.isCorrect;
   const expectedText = currentQuestion.choices[currentQuestion.answer];
 
+  recordAnswerStats(isCorrect);
   if (revisionMode) recordRevisionResult(isCorrect);
   else moveCard(isCorrect);
   showFeedback(isCorrect, expectedText);
@@ -729,6 +1025,13 @@ function resetProgress() {
   }
 }
 
+function resetStudentStats() {
+  if (confirm("Voulez-vous vraiment réinitialiser vos statistiques d'utilisation ?")) {
+    localStorage.removeItem(getUsageStatsKey());
+    renderHomeDashboard();
+  }
+}
+
 function reviewAllToday() {
   if (confirm("Mettre toutes les cartes du chapitre à revoir aujourd'hui ?")) {
     questions.forEach(q => {
@@ -739,3 +1042,5 @@ function reviewAllToday() {
     renderCard();
   }
 }
+
+renderHomeDashboard();
