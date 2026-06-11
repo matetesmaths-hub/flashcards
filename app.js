@@ -35,6 +35,12 @@ const chapters = {
     themeKey: "leitner_puissances_theme",
     questions: questionsPuissances
   },
+  fractions: {
+    title: "Fractions",
+    storageKey: "leitner_fractions",
+    themeKey: "leitner_fractions_theme",
+    questions: questionsFractions
+  },
 };
 
 const intervals = [0, 1, 2, 4, 7, 14];
@@ -362,7 +368,8 @@ function allQuestions() {
     ...questionsFonctions.map(q => ({ ...q, chapterName: "Fonctions" })),
     ...questionsProbaStats.map(q => ({ ...q, chapterName: "Probabilités / statistiques" })),
     ...questionsPav.map(q => ({ ...q, chapterName: "Périmètres, aires, volumes" })),
-    ...questionsPuissances.map(q => ({ ...q, chapterName: "Puissances" }))
+    ...questionsPuissances.map(q => ({ ...q, chapterName: "Puissances" })),
+    ...questionsFractionss.map(q => ({ ...q, chapterName: "Fractions" }))
   ];
 }
 

@@ -73,28 +73,66 @@ const questionsFonctions = [
     id: "fonc7",
     type: "qcm",
     theme: "Fonctions affines",
-    question: "Dans \\( f(x) = 4x - 5 \\), le coefficient directeur est...",
-    choices: [
-      "4",
-      "-5",
-      "\\( x \\)",
-      "\\( 4x \\)"
-    ],
-    answer: 0,
-    feedback: "Dans ax+b, le coefficient directeur est a."
+  
+    parameters: {
+      a: [-9,-8,-7,-6,-5,-4,-3,-2,-1,1,2,3,4,5,6,7,8,9],
+      b: [-9,-8,-7,-6,-5,-4,-3,-2,-1,1,2,3,4,5,6,7,8,9]
+    },
+  
+    generate({ a, b }) {
+  
+      const ecriture = b >= 0
+        ? `${a}x + ${b}`
+        : `${a}x - ${Math.abs(b)}`;
+  
+      return {
+        question: `Dans \\( f(x) = ${ecriture} \\), le coefficient directeur est...`,
+  
+        choices: [
+          `\\( ${a} \\)`,
+          `\\( ${b} \\)`,
+          `\\( - ${b} \\)`,
+          `\\( ${a}x \\)`
+        ],
+  
+        answer: 0,
+  
+        feedback:
+          `Dans une fonction affine de la forme \\( ax+b \\), le coefficient directeur est \\( a \\). Ici \\( a=${a} \\).`
+      };
+    }
   },
   {
     id: "fonc8",
     type: "qcm",
     theme: "Fonctions affines",
-    question: "Dans \\( f(x) = 4x - 5 \\), l'ordonnée à l'origine est...",
-    choices: [
-      "\\( -5 \\)",
-      "4",
-      "\\( x \\)",
-      "\\( 4x \\)"
-    ],
-    answer: 0,
-    feedback: "Dans ax+b, l'ordonnée à l'origine est b."
+  
+    parameters: {
+      a: [-9,-8,-7,-6,-5,-4,-3,-2,-1,1,2,3,4,5,6,7,8,9],
+      b: [-9,-8,-7,-6,-5,-4,-3,-2,-1,1,2,3,4,5,6,7,8,9]
+    },
+  
+    generate({ a, b }) {
+  
+      const ecriture = b >= 0
+        ? `${a}x + ${b}`
+        : `${a}x - ${Math.abs(b)}`;
+  
+      return {
+        question: `Dans \\( f(x) = ${ecriture} \\), l'ordonnée à l'origine est...`,
+  
+        choices: [
+          `\\( ${b} \\)`,
+          `\\( ${a} \\)`,
+          `\\( - ${b} \\)`,
+          `\\( ${a}x \\)`
+        ],
+  
+        answer: 0,
+  
+        feedback:
+          `Dans une fonction affine de la forme \\( ax+b \\), l'ordonnée à l'origine est \\( b \\). Ici \\( b=${b} \\).`
+      };
+    }
   }
 ];
