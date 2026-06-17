@@ -369,7 +369,7 @@ function allQuestions() {
     ...questionsProbaStats.map(q => ({ ...q, chapterName: "Probabilités / statistiques" })),
     ...questionsPav.map(q => ({ ...q, chapterName: "Périmètres, aires, volumes" })),
     ...questionsPuissances.map(q => ({ ...q, chapterName: "Puissances" })),
-    ...questionsFractionss.map(q => ({ ...q, chapterName: "Fractions" }))
+    ...questionsFractions.map(q => ({ ...q, chapterName: "Fractions" }))
   ];
 }
 
@@ -963,11 +963,8 @@ function validateCourseAnswer(isCorrect) {
   }
 
   recordAnswerStats(isCorrect);
-  moveCard(isCorrect);
-
-  if (revisionMode) {
-    recordRevisionResult(isCorrect);
-  }
+  if (revisionMode) recordRevisionResult(isCorrect);
+  else moveCard(isCorrect);
 
   const feedback = document.getElementById("feedback");
 
